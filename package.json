@@ -32,6 +32,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "linkedin-jobs-scraper": "^9.0.1",
     "pug": "^3.0.0",
     "rss-parser": "^3.12.0"
   },

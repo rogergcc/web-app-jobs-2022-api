@@ -21,6 +21,7 @@ rss-parser
 ```
   npm run dev 
   
+  /api/v1/jobs
   /api/v1/getJobs
 
 ```
