@@ -2,7 +2,6 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
-
 const Parser = require("rss-parser");
 const axios = require("axios");
 
@@ -33,8 +32,11 @@ App.get("/", async (req, res, next) => {
   res.json("Thesis Project Portal de Ofertas de Trabajo");
 });
 
-App.get("/api/v1/getRemoteJobs", async (req, res, next) => {
-  const api = "https://remoteok.com/api?tag=Javascript";
+App.get(versionOne("get-remote-jobs"), async (req, res, next) => {
+
+  const ofertTrabajo = req.query.trabajo
+
+  const api = `https://remoteok.com/api?tag=${ofertTrabajo}`;
   let data;
   try {
     const response = await axios.get(api);
@@ -49,14 +51,13 @@ App.get("/api/v1/getRemoteJobs", async (req, res, next) => {
   return data;
 });
 
-
 App.get("/api/v1/jobs", async (req, res, next) => {
   // Each scraper instance is associated with one browser.
   // Concurrent queries will run on different pages within the same browser instance.
   const scraper = new LinkedinScraper({
     headless: true,
     slowMo: 100,
-    args: ["--lang=en-GB"],
+    args: ["--lang=es-GB"],
   });
   let arrayJobs= [];
   // Add listeners for scraper events
@@ -128,7 +129,7 @@ App.get("/api/v1/jobs", async (req, res, next) => {
         {
           query: "Desarollador",
           options: {
-            locations: ["Peru"], // This will override global options ["Europe"]
+            locations: ["Lima, Perú"], // This will override global options ["Europe"]
             filters: {
               type: [typeFilter.FULL_TIME, typeFilter.CONTRACT],
             },
@@ -152,8 +153,10 @@ App.get("/api/v1/jobs", async (req, res, next) => {
 App.get(versionOne('getJobs'), async (req, res, next) => {
   const parser = new Parser();
   // let feed = await parser.parseURL('https://www.reddit.com/.rss');
+
+  const ofertTrabajo = req.query.trabajo
   const rss = await parser.parseURL(
-    "https://pe.indeed.com/rss?q=developer&l=Per%C3%BA"
+    `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
   );
   //https://pe.indeed.com/trabajo?q=developer&l=Perú&sort=date
   //console.log(rss)
