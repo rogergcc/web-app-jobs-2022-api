@@ -166,7 +166,7 @@ App.get(versionOne('getJobs'), async (req, res, next) => {
   jobsIndeedArray = await getIndeedJobs(rss)
 
   // console.table(rss.items)
-  res.json(indeedjobs={jobs:jobsIndeedArray});
+  res.json(indeedjobs=jobsIndeedArray);
 
   // rss?.items.forEach(i => {
   //   console.log(i.title + ':' + i.link)
