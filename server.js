@@ -15,6 +15,7 @@ App.listen(CONFIG.PORT, function (error) {
     `We are live on ${process.env.NODE_ENV} mode on port ${CONFIG.PORT}`
   )
   console.log(`Jobs json: ${CONFIG.HOST}:${CONFIG.PORT}/api/v1/getJobs`)
+  // console.log(`Jobs json: ${CONFIG.HOST}:${CONFIG.PORT}/api/v1/getLinkedinJobs`)
 })
 
 // Handle unhandled promise rejections

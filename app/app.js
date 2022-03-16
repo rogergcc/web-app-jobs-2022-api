@@ -5,6 +5,11 @@ const cors = require("cors");
 const Parser = require("rss-parser");
 const axios = require("axios");
 
+const puppeteer = require("puppeteer");
+
+const BASE_URL =
+  "https://www.linkedin.com/jobs/search?keywords=React.js&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0";
+
 const {
   LinkedinScraper,
   relevanceFilter,
@@ -33,8 +38,7 @@ App.get("/", async (req, res, next) => {
 });
 
 App.get(versionOne("get-remote-jobs"), async (req, res, next) => {
-
-  const ofertTrabajo = req.query.trabajo
+  const ofertTrabajo = req.query.trabajo;
 
   const api = `https://remoteok.com/api?tag=${ofertTrabajo}`;
   let data;
@@ -57,9 +61,9 @@ App.get("/api/v1/jobs", async (req, res, next) => {
   const scraper = new LinkedinScraper({
     headless: true,
     slowMo: 100,
-    args: ["--lang=es-GB"],
+    args: ["--lang=en-GB"],
   });
-  let arrayJobs= [];
+  let arrayJobs = [];
   // Add listeners for scraper events
   scraper.on(events.scraper.data, (data) => {
     const jobsOffer = {
@@ -77,8 +81,8 @@ App.get("/api/v1/jobs", async (req, res, next) => {
       industries: `${data.industries}'`,
     };
 
-    arrayJobs.push(jobsOffer)
-    
+    arrayJobs.push(jobsOffer);
+
     console.log(jobsOffer);
     //   console.log(
     //       data.description.length,
@@ -124,96 +128,212 @@ App.get("/api/v1/jobs", async (req, res, next) => {
   // Run queries concurrently
   await Promise.all([
     // Run queries serially
-    scraper.run(
-      [
-        {
-          query: "Desarollador",
-          options: {
-            locations: ["Lima, Perú"], // This will override global options ["Europe"]
-            filters: {
-              type: [typeFilter.FULL_TIME, typeFilter.CONTRACT],
-            },
+    scraper.run([
+      {
+        query: "Desarollador",
+        options: {
+          locations: ["Lima, Perú"], // This will override global options ["Europe"]
+          filters: {
+            type: [typeFilter.FULL_TIME, typeFilter.CONTRACT],
           },
-        }
-        
-      ]
-      
-      , { // Global options, will be merged individually with each query options
-        locations: ["America"],
-        optimize: true,
-        limit: 33,
-    }),
+        },
+      },
+    ]),
   ]);
 
-  
   // Close browser
   await scraper.close();
 });
 
-App.get(versionOne('getJobs'), async (req, res, next) => {
+App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
+  const browser = await puppeteer.launch({ headless: false });
+  // const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  // page.on('console', consoleObj => console.log(consoleObj.text()))
+  await page.goto(BASE_URL);
+
+  await delay(5000);
+
+  await page.waitForSelector(".jobs-search__results-list");
+  const datos = await page.waitForSelector(
+    "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
+  );
+  // await delay(5000);
+
+  const title = await page.title();
+
+  const getLinkedinJobs = await page.evaluate(() => {
+    const primeministers = [];
+    const containers = document.querySelector(
+      "section.two-pane-serp-page__results-list > ul.jobs-search__results-list"
+    );
+    const pms = containers.querySelectorAll("li > div");
+    pms.forEach((element) => {
+      const titleSelector = element.querySelector(".base-card__full-link span");
+      const empresa = element.querySelector(".base-search-card__subtitle a");
+      const lugarSelector = element.querySelector(
+        ".base-search-card__metadata span"
+      );
+      const fechaSelector = element.querySelector(
+        ".base-search-card__metadata time"
+      );
+      const linkSelector = element.querySelector(".base-card__full-link");
+      // const h4 = element.querySelector(".base-search-card__subtitle > a.hidden-nested-link");
+
+      const title = titleSelector.innerHTML;
+      const empresaData = empresa.innerHTML;
+
+      const link = linkSelector.href;
+      const lugar = lugarSelector.innerHTML;
+      const fecha = fechaSelector.getAttribute("datetime");
+      primeministers.push({
+        title: title.trim(),
+        link: link.trim(),
+        empresa: empresaData.trim(),
+        pais: lugar.trim(),
+        fecha: fecha.trim(),
+        type: "linkedin",
+      });
+    });
+    return primeministers;
+  });
+
+  res.json((linkedinjobs = getLinkedinJobs));
+});
+
+function delay(time) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, time);
+  });
+}
+
+App.get(versionOne("getJobs"), async (req, res, next) => {
   const parser = new Parser();
   // let feed = await parser.parseURL('https://www.reddit.com/.rss');
 
-  const ofertTrabajo = req.query.trabajo
+  const ofertTrabajo = req.query.trabajo;
   const rss = await parser.parseURL(
-    `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
+    // `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
+    `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
   );
   //https://pe.indeed.com/trabajo?q=developer&l=Perú&sort=date
   //console.log(rss)
 
   let jobsIndeedArray = [];
 
-  jobsIndeedArray = await getIndeedJobs(rss)
+  jobsIndeedArray = await getIndeedJobs(rss);
 
-  // console.table(rss.items)
-  res.json(indeedjobs=jobsIndeedArray);
+  let jobsLinkedinArray = [];
 
-  // rss?.items.forEach(i => {
-  //   console.log(i.title + ':' + i.link)
-  // })
+  jobsLinkedinArray = await getLinkedinJobs(ofertTrabajo);
+
+  jobs= jobsIndeedArray.concat(jobsLinkedinArray)
+
+  res.json((jobs = jobs));
+
+
 });
 
 
-// mas recientes
 
-// https://www.linkedin.com/jobs/search/?geoId=102927786&location=Peru&sortBy=DD
+const getLinkedinJobs= async(jobsSearch)=>{
 
-// mas relevantes del ultimo mes https://www.linkedin.com/jobs/search/?f_TPR=r2592000&geoId=102927786&location=Peru&sortBy=R
+  try {
+      // const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
 
-// ################# Variables to define #################
-// username_linkedin = "rogercolquecalcina@gmail.com"
-// #username_linkedin = "Roger Colque Calcina"
-// password_linkedin = "0987poiu"
-// keyword = "developer"
-// scrolls = 3
-// language = 1
-// #######################################################
+  // page.on('console', consoleObj => console.log(consoleObj.text()))
+
+  const SEARCH_URL =`https://www.linkedin.com/jobs/search?keywords=${jobsSearch}&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0`;
 
 
+  await page.goto(SEARCH_URL);
+
+  await delay(5000);
+
+  await page.waitForSelector(".jobs-search__results-list");
+  const datos = await page.waitForSelector(
+    "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
+  );
+  
+  const getLinkedinJobs = await page.evaluate(() => {
+    const jobsList = [];
+    const containers = document.querySelector(
+      "section.two-pane-serp-page__results-list > ul.jobs-search__results-list"
+    );
+    const pms = containers.querySelectorAll("li > div");
+    pms.forEach((element) => {
+      const titleSelector = element.querySelector(".base-card__full-link span");
+      const empresa = element.querySelector(".base-search-card__subtitle a");
+      const lugarSelector = element.querySelector(
+        ".base-search-card__metadata span"
+      );
+      const fechaSelector = element.querySelector(
+        ".base-search-card__metadata time"
+      );
+      const linkSelector = element.querySelector(".base-card__full-link");
+      // const h4 = element.querySelector(".base-search-card__subtitle > a.hidden-nested-link");
+
+      const title = titleSelector.innerHTML;
+      const empresaData = empresa.innerHTML;
+
+      const link = linkSelector.href;
+      const lugar = lugarSelector.innerHTML;
+      const fecha = fechaSelector.getAttribute("datetime");
+
+  
+      jobsList.push({
+        title: title.trim(),
+        link: link.trim(),
+        pubDate: fecha.trim(),
+        content: '-',
+        contentSnippet: '-',
+        company: empresaData.trim(),
+        location: lugar.trim(),
+        
+        type: "linkedin",
+      });
+    });
+    return jobsList;
+  });
+    return getLinkedinJobs
+  } catch (error) {
+    return [];
+  }
+}
 const getIndeedJobs = async (lista) => {
   try {
-    const indeedServiceJobs = lista.items
+    const indeedServiceJobs = lista.items;
 
     const listindeedServiceJobs = [];
 
     indeedServiceJobs.forEach((indeedJob) => {
+      //`Company='${data.company ? data.company : "N/A"}'`,
+      let title = indeedJob.title
+      let location = indeedJob.title
+      let company = indeedJob.title
+      
       const myJob = {
-        title: indeedJob.title,
+        title: title.split('-')[0].trim,
         link: indeedJob.link,
         pubDate: indeedJob.pubDate,
         content: indeedJob.content,
         contentSnippet: indeedJob.contentSnippet,
-        guid: indeedJob.guid,
-        isoDate: indeedJob.isoDate,
+        company: (company.split('-').slice(-2,-1)+"").trim(),
+        location: (location.split('-').slice(-1)+"").trim(),
+        // guid: indeedJob.guid,
+        // isoDate: indeedJob.isoDate,
         type: "indeed",
       };
-      listindeedServiceJobs.push(myJob)
+      listindeedServiceJobs.push(myJob);
     });
 
     return listindeedServiceJobs;
   } catch (error) {
     console.error(error);
-    return []
+    return [];
   }
 };
 
