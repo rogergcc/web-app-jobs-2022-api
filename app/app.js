@@ -10,15 +10,6 @@ const puppeteer = require("puppeteer");
 const BASE_URL =
   "https://www.linkedin.com/jobs/search?keywords=React.js&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0";
 
-const {
-  LinkedinScraper,
-  relevanceFilter,
-  timeFilter,
-  typeFilter,
-  experienceLevelFilter,
-  events,
-} = require("linkedin-jobs-scraper");
-
 const App = express();
 
 App.use(express.static(path.join(__dirname, "../public")));
@@ -37,23 +28,6 @@ App.get("/", async (req, res, next) => {
   res.json("Thesis Project Portal de Ofertas de Trabajo");
 });
 
-App.get(versionOne("get-remote-jobs"), async (req, res, next) => {
-  const ofertTrabajo = req.query.trabajo;
-
-  const api = `https://remoteok.com/api?tag=${ofertTrabajo}`;
-  let data;
-  try {
-    const response = await axios.get(api);
-    data = response;
-    console.log(data);
-
-    // res.send(data);
-    return data;
-  } catch (error) {
-    console.log(error);
-  }
-  return data;
-});
 
 App.get("/api/v1/jobs", async (req, res, next) => {
   // Each scraper instance is associated with one browser.
