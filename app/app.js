@@ -228,81 +228,76 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
 
   jobsLinkedinArray = await getLinkedinJobs(ofertTrabajo);
 
-  jobs= jobsIndeedArray.concat(jobsLinkedinArray)
+  jobs = jobsIndeedArray.concat(jobsLinkedinArray);
 
   res.json((jobs = jobs));
-
-
 });
 
-
-
-const getLinkedinJobs= async(jobsSearch)=>{
-
+const getLinkedinJobs = async (jobsSearch) => {
   try {
-      // const browser = await puppeteer.launch({ headless: false });
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
+    const browser = await puppeteer.launch({ headless: false });
+    // const browser = await puppeteer.launch();
+    const page = await browser.newPage();
 
-  // page.on('console', consoleObj => console.log(consoleObj.text()))
+    // page.on('console', consoleObj => console.log(consoleObj.text()))
 
-  const SEARCH_URL =`https://www.linkedin.com/jobs/search?keywords=${jobsSearch}&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0`;
+    const SEARCH_URL = `https://www.linkedin.com/jobs/search?keywords=${jobsSearch}&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0`;
 
+    await page.goto(SEARCH_URL);
 
-  await page.goto(SEARCH_URL);
+    await delay(5000);
 
-  await delay(5000);
-
-  await page.waitForSelector(".jobs-search__results-list");
-  const datos = await page.waitForSelector(
-    "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
-  );
-  
-  const getLinkedinJobs = await page.evaluate(() => {
-    const jobsList = [];
-    const containers = document.querySelector(
-      "section.two-pane-serp-page__results-list > ul.jobs-search__results-list"
+    await page.waitForSelector(".jobs-search__results-list");
+    const datos = await page.waitForSelector(
+      "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
     );
-    const pms = containers.querySelectorAll("li > div");
-    pms.forEach((element) => {
-      const titleSelector = element.querySelector(".base-card__full-link span");
-      const empresa = element.querySelector(".base-search-card__subtitle a");
-      const lugarSelector = element.querySelector(
-        ".base-search-card__metadata span"
+
+    const getLinkedinJobs = await page.evaluate(() => {
+      const jobsList = [];
+      const containers = document.querySelector(
+        "section.two-pane-serp-page__results-list > ul.jobs-search__results-list"
       );
-      const fechaSelector = element.querySelector(
-        ".base-search-card__metadata time"
-      );
-      const linkSelector = element.querySelector(".base-card__full-link");
-      // const h4 = element.querySelector(".base-search-card__subtitle > a.hidden-nested-link");
+      const pms = containers.querySelectorAll("li > div");
+      pms.forEach((element) => {
+        const titleSelector = element.querySelector(
+          ".base-card__full-link span"
+        );
+        const empresa = element.querySelector(".base-search-card__subtitle a");
+        const lugarSelector = element.querySelector(
+          ".base-search-card__metadata span"
+        );
+        const fechaSelector = element.querySelector(
+          ".base-search-card__metadata time"
+        );
+        const linkSelector = element.querySelector(".base-card__full-link");
+        // const h4 = element.querySelector(".base-search-card__subtitle > a.hidden-nested-link");
 
-      const title = titleSelector.innerHTML;
-      const empresaData = empresa.innerHTML;
+        const title = titleSelector.innerHTML;
+        const empresaData = empresa.innerHTML;
 
-      const link = linkSelector.href;
-      const lugar = lugarSelector.innerHTML;
-      const fecha = fechaSelector.getAttribute("datetime");
+        const link = linkSelector.href;
+        const lugar = lugarSelector.innerHTML;
+        const fecha = fechaSelector.getAttribute("datetime");
 
-  
-      jobsList.push({
-        title: title.trim(),
-        link: link.trim(),
-        pubDate: fecha.trim(),
-        content: '-',
-        contentSnippet: '-',
-        company: empresaData.trim(),
-        location: lugar.trim(),
-        
-        type: "linkedin",
+        jobsList.push({
+          title: title.trim(),
+          link: link.trim(),
+          pubDate: fecha.trim(),
+          content: "-",
+          contentSnippet: "-",
+          company: empresaData.trim(),
+          location: lugar.trim(),
+
+          type: "linkedin",
+        });
       });
+      return jobsList;
     });
-    return jobsList;
-  });
-    return getLinkedinJobs
+    return getLinkedinJobs;
   } catch (error) {
     return [];
   }
-}
+};
 const getIndeedJobs = async (lista) => {
   try {
     const indeedServiceJobs = lista.items;
@@ -311,18 +306,18 @@ const getIndeedJobs = async (lista) => {
 
     indeedServiceJobs.forEach((indeedJob) => {
       //`Company='${data.company ? data.company : "N/A"}'`,
-      let title = indeedJob.title
-      let location = indeedJob.title
-      let company = indeedJob.title
-      
+      let title = indeedJob.title;
+      let location = indeedJob.title;
+      let company = indeedJob.title;
+
       const myJob = {
-        title: title.split('-')[0].trim,
+        title: title.split("-")[0].trim,
         link: indeedJob.link,
         pubDate: indeedJob.pubDate,
         content: indeedJob.content,
         contentSnippet: indeedJob.contentSnippet,
-        company: (company.split('-').slice(-2,-1)+"").trim(),
-        location: (location.split('-').slice(-1)+"").trim(),
+        company: (company.split("-").slice(-2, -1) + "").trim(),
+        location: (location.split("-").slice(-1) + "").trim(),
         // guid: indeedJob.guid,
         // isoDate: indeedJob.isoDate,
         type: "indeed",
