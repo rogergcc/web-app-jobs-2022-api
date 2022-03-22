@@ -31,7 +31,10 @@ App.get("/", async (req, res, next) => {
 
 
 App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ 
+    headless: true,
+    args: ['--no-sandbox']
+  });
   // const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
