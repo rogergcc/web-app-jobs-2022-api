@@ -183,7 +183,7 @@ const getLinkedinJobs = async (jobsSearch) => {
     });
     return getLinkedinJobs;
   } catch (error) {
-    return [];
+    return [{nodata:"nodata"}];
   }
 };
 const getIndeedJobs = async (lista) => {
