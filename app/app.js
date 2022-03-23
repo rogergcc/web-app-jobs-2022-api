@@ -28,12 +28,10 @@ App.get("/", async (req, res, next) => {
   res.json("Thesis Project Portal de Ofertas de Trabajo");
 });
 
-
-
 App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
-  const browser = await puppeteer.launch({ 
+  const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox']
+    args: ["--no-sandbox"],
   });
   // const browser = await puppeteer.launch();
   const page = await browser.newPage();
@@ -123,7 +121,21 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
 
 const getLinkedinJobs = async (jobsSearch) => {
   try {
-    const browser = await puppeteer.launch({ headless: false });
+    // const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        // "--single-process", // <- this one doesn't works in Windows
+        "--disable-gpu",
+      ],
+    });
+
     // const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
@@ -183,9 +195,9 @@ const getLinkedinJobs = async (jobsSearch) => {
     });
     return getLinkedinJobs;
   } catch (error) {
-    console.log("LOG_ERROR:"+error)
-    
-    return [{nodata:"nodata"}];
+    console.log("LOG_ERROR:" + error);
+
+    return [{ nodata: "nodata" }];
   }
 };
 const getIndeedJobs = async (lista) => {
