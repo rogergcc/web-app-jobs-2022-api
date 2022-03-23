@@ -123,10 +123,11 @@ const getLinkedinJobs = async (jobsSearch) => {
   try {
     // const browser = await puppeteer.launch({ headless: false });
     const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox"
-      ],
+      
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
+      ignoreDefaultArgs: ["--disable-extensions"],
+      slowMo: 100,
+      // headless: true
     });
 
     // const browser = await puppeteer.launch();
@@ -188,8 +189,9 @@ const getLinkedinJobs = async (jobsSearch) => {
       return jobsList;
     });
     return getLinkedinJobs;
-  } catch (error) {
-    console.log("LOG_ERROR:" + error);
+  } catch (err) {
+    console.log('error in getLinkedinJobs():', err)
+    // console.log("LOG_ERROR:" + err);
 
     return [{ nodata: "nodata" }];
   }
