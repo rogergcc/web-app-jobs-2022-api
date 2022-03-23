@@ -39,7 +39,7 @@ App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
   // page.on('console', consoleObj => console.log(consoleObj.text()))
   await page.goto(BASE_URL);
 
-  await delay(5000);
+  await delay(4000);
 
   await page.waitForSelector(".jobs-search__results-list");
   const datos = await page.waitForSelector(
