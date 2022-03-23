@@ -139,7 +139,7 @@ const getLinkedinJobs = async (jobsSearch) => {
 
     await page.goto(SEARCH_URL);
     await navigationPromise;
-    await delay(4000);
+    // await delay(4000);
 
     await page.waitForSelector("section.two-pane-serp-page__results-list");
     // const datos = await page.waitForSelector(
