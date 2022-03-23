@@ -121,18 +121,20 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
 
 const getLinkedinJobs = async (jobsSearch) => {
   
+  let browser, page;
+
   try {
     // const browser = await puppeteer.launch({ headless: false });
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
       ignoreDefaultArgs: ["--disable-extensions"],
       // slowMo: 100,
-      // headless: true
+      headless: true
     });
 
     // const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+    page = await browser.newPage();
 
     const navigationPromise = page.waitForNavigation({waitUntil: "domcontentloaded"});
     // page.on('console', consoleObj => console.log(consoleObj.text()))
@@ -143,7 +145,7 @@ const getLinkedinJobs = async (jobsSearch) => {
     await navigationPromise;
     await delay(2000);
 
-    await page.waitForSelector("section.two-pane-serp-page__results-list");
+    await page.waitForSelector(".jobs-search__results-list");
     // const datos = await page.waitForSelector(
     //   "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
     // );
@@ -202,13 +204,17 @@ const getLinkedinJobs = async (jobsSearch) => {
     await browser.close();
     
   } catch (err) {
-    console.error("ERROR: "+err)
-    console.log('error in getLinkedinJobs():', err)
+    console.error("ERROR err: "+err)
+    console.log('scrape error.message', error.message);
+    // console.log('error in getLinkedinJobs():', err)
     // console.log("LOG_ERROR:" + err);
 
     return [{ nodata: "nodata jobs" }];
-  }finally{
-    
+  }finally {
+    if (browser) {
+      await browser.close();
+      console.log('closing browser');
+    }
   }
 };
 const getIndeedJobs = async (lista) => {
