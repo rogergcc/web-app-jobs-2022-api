@@ -147,13 +147,20 @@ const getLinkedinJobs = async (jobsSearch) => {
     //   "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
     // );
 
+  //   var imageSource = await page.evaluate(() => {
+  //     imgQuery = document.querySelectorAll("img");
+  //     imgQuerySources = [...imgQuery].map((e) => e.getAttribute("src"));
+  //     return imgQuerySources;
+  // });
+  // console.log(imageSource)
+
     const getLinkedinJobs = await page.evaluate(() => {
       const jobsList = [];
       const containers = document.querySelector(
         "section.two-pane-serp-page__results-list > ul.jobs-search__results-list"
       );
       const pms = containers.querySelectorAll("li > div");
-      pms.forEach((element) => {
+      [...pms].map((element) => {
         const titleSelector = element.querySelector(
           ".base-card__full-link span"
         );
@@ -188,6 +195,7 @@ const getLinkedinJobs = async (jobsSearch) => {
       });
       return jobsList;
     });
+    browser.close();
     return getLinkedinJobs;
   } catch (err) {
     console.log('error in getLinkedinJobs():', err)
