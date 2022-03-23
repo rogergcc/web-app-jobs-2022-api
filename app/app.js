@@ -120,13 +120,14 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
 });
 
 const getLinkedinJobs = async (jobsSearch) => {
+  
   try {
     // const browser = await puppeteer.launch({ headless: false });
     const browser = await puppeteer.launch({
       
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
       ignoreDefaultArgs: ["--disable-extensions"],
-      slowMo: 100,
+      // slowMo: 100,
       // headless: true
     });
 
@@ -140,7 +141,7 @@ const getLinkedinJobs = async (jobsSearch) => {
 
     await page.goto(SEARCH_URL);
     await navigationPromise;
-    // await delay(4000);
+    await delay(2000);
 
     await page.waitForSelector("section.two-pane-serp-page__results-list");
     // const datos = await page.waitForSelector(
@@ -153,9 +154,9 @@ const getLinkedinJobs = async (jobsSearch) => {
   //     return imgQuerySources;
   // });
   // console.log(imageSource)
-
+    
     const getLinkedinJobs = await page.evaluate(() => {
-      const jobsList = [];
+      let jobsList = [];
       const containers = document.querySelector(
         "section.two-pane-serp-page__results-list > ul.jobs-search__results-list"
       );
@@ -195,13 +196,19 @@ const getLinkedinJobs = async (jobsSearch) => {
       });
       return jobsList;
     });
-    browser.close();
+    //console.log(getLinkedinJobs)
+
     return getLinkedinJobs;
+    await browser.close();
+    
   } catch (err) {
+    console.error("ERROR: "+err)
     console.log('error in getLinkedinJobs():', err)
     // console.log("LOG_ERROR:" + err);
 
-    return [{ nodata: "nodata" }];
+    return [{ nodata: "nodata jobs" }];
+  }finally{
+    
   }
 };
 const getIndeedJobs = async (lista) => {
