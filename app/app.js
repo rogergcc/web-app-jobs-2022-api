@@ -127,9 +127,9 @@ const getLinkedinJobs = async (jobsSearch) => {
     // const browser = await puppeteer.launch({ headless: false });
     browser = await puppeteer.launch({
       
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
-      ignoreDefaultArgs: ["--disable-extensions"],
-      // slowMo: 100,
+      args: ["--no-sandbox" ],
+      // ,"--disable-setuid-sandbox"],
+      // ignoreDefaultArgs: ["--disable-extensions"],
       headless: true
     });
 
@@ -146,9 +146,9 @@ const getLinkedinJobs = async (jobsSearch) => {
     await delay(3000);
 
     await page.waitForSelector(".jobs-search__results-list");
-    const datos = await page.waitForSelector(
-      "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
-    );
+    // const datos = await page.waitForSelector(
+    //   "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
+    // );
 
   //   var imageSource = await page.evaluate(() => {
   //     imgQuery = document.querySelectorAll("img");
