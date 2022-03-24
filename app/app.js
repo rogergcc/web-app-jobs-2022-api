@@ -143,12 +143,12 @@ const getLinkedinJobs = async (jobsSearch) => {
 
     await page.goto(SEARCH_URL);
     await navigationPromise;
-    await delay(2000);
+    await delay(3000);
 
     await page.waitForSelector(".jobs-search__results-list");
-    // const datos = await page.waitForSelector(
-    //   "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
-    // );
+    const datos = await page.waitForSelector(
+      "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
+    );
 
   //   var imageSource = await page.evaluate(() => {
   //     imgQuery = document.querySelectorAll("img");
