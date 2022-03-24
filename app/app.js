@@ -103,40 +103,39 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
     // `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
     `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
   );
-  //https://pe.indeed.com/trabajo?q=developer&l=Perú&sort=date
-  //console.log(rss)
 
   let jobsIndeedArray = [];
-
   jobsIndeedArray = await getIndeedJobs(rss);
 
   let jobsLinkedinArray = [];
-
   jobsLinkedinArray = await getLinkedinJobs(ofertTrabajo);
 
-  jobs = jobsIndeedArray.concat(jobsLinkedinArray);
+  let jobsgetGetOnBoardJobsArray = [];
+  jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
+
+  jobs = jobsIndeedArray.concat(jobsLinkedinArray, jobsgetGetOnBoardJobsArray);
 
   res.json((jobs = jobs));
 });
 
 const getLinkedinJobs = async (jobsSearch) => {
-  
   let browser, page;
 
   try {
     // const browser = await puppeteer.launch({ headless: false });
     browser = await puppeteer.launch({
-      
-      args: ["--no-sandbox" ],
+      args: ["--no-sandbox"],
       // ,"--disable-setuid-sandbox"],
       // ignoreDefaultArgs: ["--disable-extensions"],
-      headless: true
+      headless: true,
     });
 
     // const browser = await puppeteer.launch();
     page = await browser.newPage();
 
-    const navigationPromise = page.waitForNavigation({waitUntil: "domcontentloaded"});
+    const navigationPromise = page.waitForNavigation({
+      waitUntil: "domcontentloaded",
+    });
     // page.on('console', consoleObj => console.log(consoleObj.text()))
 
     const SEARCH_URL = `https://www.linkedin.com/jobs/search?keywords=${jobsSearch}&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0`;
@@ -146,17 +145,7 @@ const getLinkedinJobs = async (jobsSearch) => {
     await delay(3000);
 
     await page.waitForSelector(".jobs-search__results-list");
-    // const datos = await page.waitForSelector(
-    //   "section.two-pane-serp-page__results-list > ul > li:nth-child(1) > div > a"
-    // );
 
-  //   var imageSource = await page.evaluate(() => {
-  //     imgQuery = document.querySelectorAll("img");
-  //     imgQuerySources = [...imgQuery].map((e) => e.getAttribute("src"));
-  //     return imgQuerySources;
-  // });
-  // console.log(imageSource)
-    
     const getLinkedinJobs = await page.evaluate(() => {
       let jobsList = [];
       const containers = document.querySelector(
@@ -201,19 +190,17 @@ const getLinkedinJobs = async (jobsSearch) => {
     //console.log(getLinkedinJobs)
 
     return getLinkedinJobs;
-    await browser.close();
-    
   } catch (err) {
-    console.error("ERROR err: "+err)
-    console.log('scrape error.message', error.message);
+    console.error("ERROR err: " + err);
+    console.log("scrape error.message", err.message);
     // console.log('error in getLinkedinJobs():', err)
     // console.log("LOG_ERROR:" + err);
 
     return [{ nodata: "nodata jobs" }];
-  }finally {
+  } finally {
     if (browser) {
       await browser.close();
-      console.log('closing browser');
+      console.log("closing browser");
     }
   }
 };
@@ -251,4 +238,46 @@ const getIndeedJobs = async (lista) => {
   }
 };
 
+const getGetOnBoardJobs = async (ofertTrabajo) => {
+  const api = `https://www.getonbrd.com/api/v0/search/jobs?query=${ofertTrabajo}&per_page=10&page=1&expand=["company"]`;
+
+  try {
+    var config = {
+      method: 'get',
+      url: api,
+      headers: { }
+    };
+
+    const listgetonboardServiceJobs = [];
+
+    const response = await axios(config)
+    // const response = await axios.get(api);
+    const responseJobs = await response.data.data;
+
+    responseJobs.forEach((element) => {
+      const myJob = {
+        title: element.attributes.title,
+        link: element.links.public_url,
+
+        content: element.attributes.description,
+        contentSnippet: element.attributes.functions,
+        company: element.attributes.company.data.type,
+        location: `${element.attributes.remote_zone } / ${element.attributes.country}`,
+
+        min_salary: element.min_salary || "-",
+        max_salary: element.max_salary || "-",
+
+        type: "getonbrd",
+      };
+
+      listgetonboardServiceJobs.push(myJob);
+    });
+
+    return listgetonboardServiceJobs;
+  } catch (error) {
+    console.log(error);
+    console.error(error);
+    return [];
+  }
+};
 module.exports = App;
