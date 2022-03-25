@@ -124,25 +124,29 @@ const getLinkedinJobs = async (jobsSearch) => {
   try {
     // const browser = await puppeteer.launch({ headless: false });
     browser = await puppeteer.launch({
-      args: ["--no-sandbox"],
+      
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
+      ignoreDefaultArgs: ["--disable-extensions"],
       // ,"--disable-setuid-sandbox"],
       // ignoreDefaultArgs: ["--disable-extensions"],
-      headless: true,
+      // headless: true,
     });
 
     // const browser = await puppeteer.launch();
     page = await browser.newPage();
 
-    const navigationPromise = page.waitForNavigation({
-      waitUntil: "domcontentloaded",
-    });
+    // const navigationPromise = page.waitForNavigation({
+    //   waitUntil: "domcontentloaded",
+    // });
+
     // page.on('console', consoleObj => console.log(consoleObj.text()))
 
     const SEARCH_URL = `https://www.linkedin.com/jobs/search?keywords=${jobsSearch}&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0`;
 
     await page.goto(SEARCH_URL);
-    await navigationPromise;
-    
+
+    // await navigationPromise;
+
     // await delay(3000);
 
     await page.waitForSelector(".jobs-search__results-list");

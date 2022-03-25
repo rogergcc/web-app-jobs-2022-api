@@ -35,8 +35,6 @@ npm -v
 node -v
 v14.17.5
 
-C:\Users\Usuario>
-
 
 # Entorno Local
 Buscar trabajo de portales Indeed,Linkedin y GetOnboard
