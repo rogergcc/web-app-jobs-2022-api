@@ -7,11 +7,7 @@ THESIS - WebApp Busqueda DE OFERTAS LABORALES usando tecnicas webscraping de por
 -getonboard
 
 # Technologies used.
-Nodejs,   
-body-parser,
-dotenv,
-express,
-rss-parser
+Nodejs, body-parser, dotenv, express, rss-parser, puppeter
 
 # Getting Started
 1. Clone repo and install npm nodejs git.
@@ -30,4 +26,15 @@ rss-parser
   HOST=http://localhost
   PORT=3000
 ```
+
+
+# Entorno Local
+Buscar trabajo de portales Indeed,Linkedin y GetOnboard
+
+Ejemplos
+GET http://localhost:3001/api/v1/getJobs?trabajo=android
+GET http://localhost:3001/api/v1/getJobs?trabajo=react
+GET http://localhost:3001/api/v1/getJobs?trabajo=angular
+
+
 

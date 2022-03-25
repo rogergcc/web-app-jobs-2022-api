@@ -1,8 +1,8 @@
 module.exports = {
   development: {
-    nombresitio: 'Films Trip [Dev]'
+    nombresitio: 'Ofertas Laborales [Dev]'
   },
   production: {
-    nombresitio: 'Films Trip'
+    nombresitio: 'Ofertas Laborales'
   }
 }
