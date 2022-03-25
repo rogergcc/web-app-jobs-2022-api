@@ -20,20 +20,33 @@ Nodejs, body-parser, dotenv, express, rss-parser, puppeter
   /api/v1/jobs
   /api/v1/getJobs
 
+Crear un archivo .env en la raiz
 ```
 .env
 ```
+
   HOST=http://localhost
   PORT=3000
 ```
+
+npm -v
+6.14.14
+
+node -v
+v14.17.5
+
+C:\Users\Usuario>
 
 
 # Entorno Local
 Buscar trabajo de portales Indeed,Linkedin y GetOnboard
 
 Ejemplos
+
 GET http://localhost:3001/api/v1/getJobs?trabajo=android
+
 GET http://localhost:3001/api/v1/getJobs?trabajo=react
+
 GET http://localhost:3001/api/v1/getJobs?trabajo=angular
 
 
