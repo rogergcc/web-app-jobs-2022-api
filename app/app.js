@@ -127,9 +127,7 @@ const getLinkedinJobs = async (jobsSearch) => {
     browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
       ignoreDefaultArgs: ["--disable-extensions"],
-      // ,"--disable-setuid-sandbox"],
-      // ignoreDefaultArgs: ["--disable-extensions"],
-      headless: false,
+      headless: true,
     });
 
     // const browser = await puppeteer.launch();
