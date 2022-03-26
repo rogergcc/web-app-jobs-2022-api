@@ -104,16 +104,17 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
     `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
   );
 
-  let jobsIndeedArray = [];
-  jobsIndeedArray = await getIndeedJobs(rss);
+  // let jobsIndeedArray = [];
+  // jobsIndeedArray = await getIndeedJobs(rss);
 
-  let jobsLinkedinArray = [];
-  jobsLinkedinArray = await getLinkedinJobs(ofertTrabajo);
+  // let jobsLinkedinArray = [];
+  // jobsLinkedinArray = await getLinkedinJobs(ofertTrabajo);
+  // let jobsgetGetOnBoardJobsArray = [];
+  // jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
 
-  let jobsgetGetOnBoardJobsArray = [];
-  jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
+  const [jobsIndeedArray, mLinkedinJobs, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getLinkedinJobs(ofertTrabajo), getGetOnBoardJobs(ofertTrabajo)]);
 
-  jobs = jobsIndeedArray.concat(jobsLinkedinArray, jobsgetGetOnBoardJobsArray);
+  jobs = jobsIndeedArray.concat(mLinkedinJobs, mGetonboardJobs);
 
   res.json((jobs = jobs));
 });
