@@ -125,12 +125,11 @@ const getLinkedinJobs = async (jobsSearch) => {
   try {
     // const browser = await puppeteer.launch({ headless: false });
     browser = await puppeteer.launch({
-      
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
       ignoreDefaultArgs: ["--disable-extensions"],
       // ,"--disable-setuid-sandbox"],
       // ignoreDefaultArgs: ["--disable-extensions"],
-      // headless: true,
+      headless: false,
     });
 
     // const browser = await puppeteer.launch();
@@ -144,7 +143,14 @@ const getLinkedinJobs = async (jobsSearch) => {
 
     const SEARCH_URL = `https://www.linkedin.com/jobs/search?keywords=${jobsSearch}&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0`;
 
-    await page.goto(SEARCH_URL);
+    // Configure the navigation timeout
+    await page.goto(SEARCH_URL, {
+      waitUntil: "load",
+      // Remove the timeout
+      timeout: 0,
+    });
+
+    // await page.goto(SEARCH_URL);
 
     // await navigationPromise;
 
