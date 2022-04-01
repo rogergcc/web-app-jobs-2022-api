@@ -2,7 +2,7 @@
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
-const CONFIG = require('./config/config')
+const CONFIG = require('./app/config/config')
 const App = require('./app/app')
 const errorHandler = require('./app/middleware/error')
 

@@ -7,10 +7,10 @@ const axios = require("axios");
 
 const puppeteer = require("puppeteer");
 
-const BASE_URL =
-  "https://www.linkedin.com/jobs/search?keywords=React.js&location=Per%C3%BA&geoId=102927786&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0";
-
 const App = express();
+
+
+
 
 App.use(express.static(path.join(__dirname, "../public")));
 // App.use(express.static('public'))
@@ -24,9 +24,15 @@ App.use(cors());
 
 const versionOne = (routeName) => `/api/v1/${routeName}`;
 
+
+
 App.get("/", async (req, res, next) => {
   res.json("Thesis Project Portal de Ofertas de Trabajo");
 });
+
+//#region JwT todoas las rutas con jwt -- descomentar para crear el 1er usuario
+
+
 
 App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
   const browser = await puppeteer.launch({
@@ -88,12 +94,6 @@ App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
   res.json((linkedinjobs = getLinkedinJobs));
 });
 
-function delay(time) {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, time);
-  });
-}
-
 App.get(versionOne("getJobs"), async (req, res, next) => {
   const parser = new Parser();
   // let feed = await parser.parseURL('https://www.reddit.com/.rss');
@@ -112,7 +112,7 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
   // let jobsgetGetOnBoardJobsArray = [];
   // jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
 
-  const [jobsIndeedArray, mLinkedinJobs, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getLinkedinJobs(ofertTrabajo), getGetOnBoardJobs(ofertTrabajo)]);
+  const [jobsIndeedArray, mLinkedinJobs, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getGetOnBoardJobs(ofertTrabajo)]);
 
   jobs = jobsIndeedArray.concat(mLinkedinJobs, mGetonboardJobs);
 
