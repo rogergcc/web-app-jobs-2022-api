@@ -25,7 +25,6 @@ App.use(cors());
 const versionOne = (routeName) => `/api/v1/${routeName}`;
 
 
-
 App.get("/", async (req, res, next) => {
   res.json("Thesis Project Portal de Ofertas de Trabajo");
 });
@@ -112,7 +111,7 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
   // let jobsgetGetOnBoardJobsArray = [];
   // jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
 
-  const [jobsIndeedArray, mLinkedinJobs, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getGetOnBoardJobs(ofertTrabajo)]);
+  const [jobsIndeedArray, mLinkedinJobs, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss),getLinkedinJobs(ofertTrabajo), getGetOnBoardJobs(ofertTrabajo)]);
 
   jobs = jobsIndeedArray.concat(mLinkedinJobs, mGetonboardJobs);
 
