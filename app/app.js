@@ -111,9 +111,9 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
   // let jobsgetGetOnBoardJobsArray = [];
   // jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
 
-  const [jobsIndeedArray, mLinkedinJobs, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss),getLinkedinJobs(ofertTrabajo), getGetOnBoardJobs(ofertTrabajo)]);
+  const [jobsIndeedArray, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getGetOnBoardJobs(ofertTrabajo)]);
 
-  jobs = jobsIndeedArray.concat(mLinkedinJobs, mGetonboardJobs);
+  jobs = jobsIndeedArray.concat(mGetonboardJobs);
 
   res.json((jobs = jobs));
 });
