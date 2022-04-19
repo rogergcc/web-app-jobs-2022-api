@@ -2,15 +2,15 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
-const Parser = require("rss-parser");
+// const Parser = require("rss-parser");
+const { parse } = require('rss-to-json');
 const axios = require("axios");
 
+const cheerio =require ('cheerio');
 const puppeteer = require("puppeteer");
 
 const App = express();
-
-
-
+//https://pe.indeed.com/jobs?q=android&l=Per%C3%BA&vjk=657c9c57c97c700b
 
 App.use(express.static(path.join(__dirname, "../public")));
 // App.use(express.static('public'))
@@ -94,14 +94,19 @@ App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
 });
 
 App.get(versionOne("getJobs"), async (req, res, next) => {
-  const parser = new Parser();
+  //const parser = new Parser();
   // let feed = await parser.parseURL('https://www.reddit.com/.rss');
 
   const ofertTrabajo = req.query.trabajo;
-  const rss = await parser.parseURL(
-    // `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
-    `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
-  );
+  // const rss = await parser.parseURL(
+  //   // `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
+  //   `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
+  // );
+
+  const rss = await parse(`https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`);
+  //https://pe.indeed.com/trabajo?q=android&l=Per%C3%BA&vjk=657c9c57c97c700b
+
+  // console.log("datosRSS",rss)
 
   // let jobsIndeedArray = [];
   // jobsIndeedArray = await getIndeedJobs(rss);
@@ -110,8 +115,12 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
   // jobsLinkedinArray = await getLinkedinJobs(ofertTrabajo);
   // let jobsgetGetOnBoardJobsArray = [];
   // jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
+  console.log("OFERTA : "+ofertTrabajo)
+  // const result = await scrapeIndeed(ofertTrabajo)
+  // console.log(result)
 
   const [jobsIndeedArray, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getGetOnBoardJobs(ofertTrabajo)]);
+  // const [jobsIndeedArray, mGetonboardJobs] = await Promise.all([scrapeIndeed(ofertTrabajo), getGetOnBoardJobs(ofertTrabajo)]);
 
   jobs = jobsIndeedArray.concat(mGetonboardJobs);
 
@@ -213,10 +222,12 @@ const getLinkedinJobs = async (jobsSearch) => {
     }
   }
 };
+
 const getIndeedJobs = async (lista) => {
   try {
+    //console.log(lista)
     const indeedServiceJobs = lista.items;
-
+     
     const listindeedServiceJobs = [];
 
     indeedServiceJobs.forEach((indeedJob) => {
@@ -224,14 +235,24 @@ const getIndeedJobs = async (lista) => {
       let title = indeedJob.title;
       let location = indeedJob.title;
       let company = indeedJob.title;
+      let linkUrl = ''
+      linkUrl = indeedJob.link
+      linkUrl = linkUrl.replace(/&amp;/g,"&");
+
+      const date = new Date().toLocaleDateString(indeedJob.published);
+      const date2 = timeAgo(indeedJob.published);
 
       const myJob = {
-        title: title.split("-")[0].trim,
-        link: indeedJob.link,
-        pubDate: indeedJob.pubDate,
-        content: indeedJob.content,
+        image: 'https://pe.indeed.com/images/indeed_rss_2_es.png',
+        title: title,
+        link: linkUrl,
+        date: date,
+        date2:date2,
+        // content: indeedJob.content,
+        content: indeedJob.description,
         contentSnippet: indeedJob.contentSnippet,
         company: (company.split("-").slice(-2, -1) + "").trim(),
+        // company: company.trim(),
         location: (location.split("-").slice(-1) + "").trim(),
         // guid: indeedJob.guid,
         // isoDate: indeedJob.isoDate,
@@ -247,6 +268,145 @@ const getIndeedJobs = async (lista) => {
   }
 };
 
+function timeAgo(input) {
+  const date = (input instanceof Date) ? input : new Date(input);
+  const formatter = new Intl.RelativeTimeFormat('en');
+  const ranges = {
+    years: 3600 * 24 * 365,
+    months: 3600 * 24 * 30,
+    weeks: 3600 * 24 * 7,
+    days: 3600 * 24,
+    hours: 3600,
+    minutes: 60,
+    seconds: 1
+  };
+  const secondsElapsed = (date.getTime() - Date.now()) / 1000;
+  for (let key in ranges) {
+    if (ranges[key] < Math.abs(secondsElapsed)) {
+      const delta = secondsElapsed / ranges[key];
+      return formatter.format(Math.round(delta), key);
+    }
+  }
+}
+
+async function scrape(oferta) {
+  const url = `https://pe.indeed.com/trabajo?q=${oferta}&l=Perú`;
+  // ? Get HTML of the website
+  const response = await axios.get(url)
+  const html = response.data
+
+  // ? Load HTML to cheerio
+  const $ = cheerio.load(html)
+  
+    // ? Loop through the product element
+  const productData = $('div.slider_container').map((_, element) => {
+    const productElement = $(element)
+    const title = productElement.find('div.heading4 span').text()
+    // const price = productElement.find('p.price_color').text()
+    // const cover = productElement.find('img.thumbnail').prop('src')
+    // const ratingClass = productElement.find('p.star-rating').attr('class').split(' ')
+    //   .filter((elementClass) => elementClass !== 'star-rating')[0] || ''
+    // const available = productElement.find('p.instock.availability').length > 0
+    // const bookUrl = productElement.find('.image_container > a').prop('href')
+
+    return {
+      title,
+      // price,
+      // cover: `${url}${cover}`,
+      // rating: ratingMap[ratingClass.toLocaleLowerCase()],
+      // available,
+      // bookUrl
+    }
+  }).get()
+  
+  return productData
+}
+
+const scrapeIndeed = async (ofertTrabajo)=>{
+  //https://pe.indeed.com/trabajo?q=android&l=Per%C3%BA&vjk=657c9c57c97c700b
+  const api = `https://pe.indeed.com/jobs?q=${ofertTrabajo}&l=Per%C3%BA&vjk=657c9c57c97c700b`;
+
+  try {
+  
+    //https://pe.indeed.com/ver-empleo?t=Desarrollador%20Back-end%20(Java)&c=AAT%20Log%C3%ADstica%20Certificada&l=Lima,+Lima&jk=e8eebe367acc796e
+    // const responseJobs = await response.data.data;
+
+    const response = await axios.get(api)
+    const html = response.data
+  
+    // ? Load HTML to cheerio
+    const $ = cheerio.load(html)
+    
+      // ? Loop through the product element
+    let articles = []
+
+    //cardOutline tapItem fs-unmask result job_1dd43288d7d3f9c3 resultWithShelf sponTapItem desktop
+    
+    const productData = $('div.slider_item').map((_, element) => {
+    // const productData = $('li div.cardOutline').map((_, element) => {
+      const productElement = $(element)
+      // const el = productElement.find('h2.jobTitle a').href()
+      const title = productElement.find('h2.jobTitle').text()
+      const company = productElement.find('.companyName').text()
+      const companyLocation = productElement.find('.companyLocation').text()
+      const description = productElement.find('.job-snippet').text()
+      const date = productElement.find('.date').text()
+
+      const salary = (productElement.find('.attribute_snippet').text()==null)? '$': productElement.find('.attribute_snippet').text()
+      
+      const jobUrl = productElement.find('.jobTitle a').attr('href');
+      const jobIdForUrl = productElement.find('h2.jobTitle a').data('jk')
+      //https://pe.indeed.com/trabajo/Desarrollador-bi-1dd43288d7d3f9c3
+
+      const titleJoin = title.replace(' ','-')
+      //https://pe.indeed.com/ver-empleo?t=DESARROLLADOR%20DE%20BI&jk=1dd43288d7d3f9c3
+
+      const urlGenerate = `https://pe.indeed.com/ver-empleo?t=${title}&c=${company}&l=${companyLocation}&jk=e8eebe367acc796e`
+      const urlGenerate2 = `https://pe.indeed.com/ver-empleo?t=${title}&jk=${jobIdForUrl}`
+      //https://pe.indeed.com/ver-empleo?t=Desarrollador%20Back-end%20(Java)&c=AAT%20Log%C3%ADstica%20Certificada&l=Lima,+Lima&jk=e8eebe367acc796e
+      
+      // const elmento = productElement.text()
+
+      // articles.push({
+      //   image: "https://pe.indeed.com/images/indeed_rss_2_es.png",
+      //   title,
+      //   link: urlGenerate2,
+      //   company,
+      //   salary,
+      //   urlGenerate,
+      //   jobIdForUrl,
+      //   jobUrl,
+      //   location: companyLocation,
+      //   content: description,
+      //   date,
+      //   type: "indeed",
+      // });
+
+      return {
+        image: "https://pe.indeed.com/images/indeed_rss_2_es.png",
+        title,
+        link: urlGenerate2,
+        company,
+        salary,
+        urlGenerate,
+        jobIdForUrl,
+        jobUrl,
+        location: companyLocation,
+        content: description,
+        date,
+        type: "indeed",
+      };
+    }).get()
+
+    return productData
+
+  }
+  catch(error){
+    console.log(error);
+    console.error(error);
+    
+  }
+}
 const getGetOnBoardJobs = async (ofertTrabajo) => {
   const api = `https://www.getonbrd.com/api/v0/search/jobs?query=${ofertTrabajo}&per_page=10&page=1&expand=["company"]`;
 
@@ -263,19 +423,32 @@ const getGetOnBoardJobs = async (ofertTrabajo) => {
     // const response = await axios.get(api);
     const responseJobs = await response.data.data;
 
+    //console.log(responseJobs)
+    // const date = timeAgo(indeedJob.attributes.published_at);
     responseJobs.forEach((element) => {
+
+      
+      const date2 = new Date().toLocaleDateString(element.attributes.published_at);
+      const date = timeAgo(element.attributes.published_at);
+
+      // const date2 = new Date().toLocaleDateString(element.attributes.published_at);
+      // const date = timeAgo(element.attributes.published_at);
+
+       //date = timeAgo(date);
       const myJob = {
+        image: element.attributes.company.data.attributes.logo,
         title: element.attributes.title,
         link: element.links.public_url,
-
+        date: date2,
+        date2:date,
         content: element.attributes.description,
         contentSnippet: element.attributes.functions,
-        company: element.attributes.company.data.type,
+        // company: element.attributes.company.data.type,
+        company: element.attributes.company.data.attributes.name,
         location: `${element.attributes.remote_zone } / ${element.attributes.country}`,
-
-        min_salary: element.min_salary || "-",
-        max_salary: element.max_salary || "-",
-
+        min_salary: element.attributes.min_salary+" USD/mes" || "- USD/mes",
+        max_salary: element.attributes.max_salary+" USD/mes" || "- USD/mes",
+        salary: `${element.attributes.min_salary} a ${element.attributes.max_salary} USD/mes`,
         type: "getonbrd",
       };
 
@@ -289,4 +462,6 @@ const getGetOnBoardJobs = async (ofertTrabajo) => {
     return [];
   }
 };
+
+
 module.exports = App;
