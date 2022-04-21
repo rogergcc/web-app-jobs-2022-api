@@ -104,6 +104,7 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
   // );
 
   const rss = await parse(`https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`);
+  
   //https://pe.indeed.com/trabajo?q=android&l=Per%C3%BA&vjk=657c9c57c97c700b
 
   // console.log("datosRSS",rss)
@@ -225,6 +226,10 @@ const getLinkedinJobs = async (jobsSearch) => {
 
 const getIndeedJobs = async (lista) => {
   try {
+
+    //USE THIS "Api" xml result because give the URL link
+    //using scraping with cherio not working always cause some data link Id url and salary is from Javascript dynamic data.
+    
     //console.log(lista)
     const indeedServiceJobs = lista.items;
      
@@ -242,6 +247,15 @@ const getIndeedJobs = async (lista) => {
       const date = new Date().toLocaleDateString(indeedJob.published);
       const date2 = timeAgo(indeedJob.published);
 
+      let description = ''
+      description =indeedJob.description.split('&lt;br>')[0]
+      
+      let salary = ''
+
+      const indexSalaryMoneda= description.indexOf('S/.')
+
+      salary= (indexSalaryMoneda != -1)?"S"+description.slice(description.indexOf('S/.') + 1): '-'
+
       const myJob = {
         image: 'https://pe.indeed.com/images/indeed_rss_2_es.png',
         title: title,
@@ -249,13 +263,16 @@ const getIndeedJobs = async (lista) => {
         date: date,
         date2:date2,
         // content: indeedJob.content,
-        content: indeedJob.description,
-        contentSnippet: indeedJob.contentSnippet,
+        content: description, //&lt;br>
+        //contentSnippet: indeedJob.contentSnippet,
         company: (company.split("-").slice(-2, -1) + "").trim(),
         // company: company.trim(),
         location: (location.split("-").slice(-1) + "").trim(),
         // guid: indeedJob.guid,
         // isoDate: indeedJob.isoDate,
+        min_salary: "-",
+        max_salary: "-",
+        salary: salary,
         type: "indeed",
       };
       listindeedServiceJobs.push(myJob);
