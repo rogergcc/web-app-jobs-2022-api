@@ -29,8 +29,6 @@ App.get("/", async (req, res, next) => {
   res.json("Thesis Project Portal de Ofertas de Trabajo");
 });
 
-//#region JwT todoas las rutas con jwt -- descomentar para crear el 1er usuario
-
 
 
 App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
@@ -102,8 +100,27 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
   //   // `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
   //   `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
   // );
+  console.log("BUSCANDO OFERTA: "+ofertTrabajo)
+  try {
+    const rss = await parse(`https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`);
+    const [jobsIndeedArray, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getGetOnBoardJobs(ofertTrabajo)]);
+    jobs = jobsIndeedArray.concat(mGetonboardJobs);
+    res.json({success:true,jobs : jobs});
+  } catch (error) {
+    res.json({success:false,jobs : [
+    {
+      title:"No datos",
+      link:"No datos",
+      image:"https://ctuid.com/img/not-found.png",
+      pubDate:"No datos",
+      content:"No datos",
+      contentSnippet:"No datos",
+      company:"No datos",
+      location:"No datos"
+    }
+  ]});
+  }
 
-  const rss = await parse(`https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`);
   
   //https://pe.indeed.com/trabajo?q=android&l=Per%C3%BA&vjk=657c9c57c97c700b
 
@@ -116,16 +133,16 @@ App.get(versionOne("getJobs"), async (req, res, next) => {
   // jobsLinkedinArray = await getLinkedinJobs(ofertTrabajo);
   // let jobsgetGetOnBoardJobsArray = [];
   // jobsgetGetOnBoardJobsArray = await getGetOnBoardJobs(ofertTrabajo);
-  console.log("OFERTA : "+ofertTrabajo)
+  
   // const result = await scrapeIndeed(ofertTrabajo)
   // console.log(result)
 
-  const [jobsIndeedArray, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getGetOnBoardJobs(ofertTrabajo)]);
+  
   // const [jobsIndeedArray, mGetonboardJobs] = await Promise.all([scrapeIndeed(ofertTrabajo), getGetOnBoardJobs(ofertTrabajo)]);
 
-  jobs = jobsIndeedArray.concat(mGetonboardJobs);
+  
 
-  res.json((jobs = jobs));
+
 });
 
 const getLinkedinJobs = async (jobsSearch) => {
