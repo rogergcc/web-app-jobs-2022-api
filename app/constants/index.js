@@ -4,13 +4,7 @@ module.exports = {
     message: '',
     body: {}
   },
-  playerMessage: {
-    PLAYER_CREATED: 'Player Created Successfully',
-    PLAYER_FETCHED: 'Player Fetched Successfully',
-    PLAYER_UPDATED: 'Player Updated Successfully',
-    PLAYER_DELETED: 'Player Deleted Successfully',
-    PLAYER_NOT_FOUND: 'Player Not Found'
-  },
+
   productMessage: {
     PRODUCT_CREATED: 'Product Created Successfully',
     PRODUCT_FETCHED: 'Product Fetched Successfully',
@@ -25,10 +19,7 @@ module.exports = {
     USER_NOT_FOUND: 'User not found',
     INVALID_PASSWORD: 'Incorrect Password'
   },
-  requestValidationMessage: {
-    BAD_REQUEST: 'Invalid fields',
-    TOKEN_MISSING: 'Token missing from header'
-  },
+  
   databaseMessage: {
     INVALID_ID: 'Invalid Id'
   }

@@ -20,7 +20,16 @@ App.use(express.urlencoded({ extended: false }));
 // ejecutar el bobyParser para poder enviar en formato json desde un Formulario en en sitio web asi aqui
 App.use(bodyParser.urlencoded({ extended: true }));
 
-App.use(cors());
+var whitelist = ['http://localhost:3000', 'https://joboardeveloper.netlify.app']
+
+const corsOptions = {
+  origin: whitelist,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+App.use(cors(corsOptions));
 
 const versionOne = (routeName) => `/api/v1/${routeName}`;
 
@@ -421,6 +430,8 @@ const scrapeIndeed = async (ofertTrabajo)=>{
         title,
         link: urlGenerate2,
         company,
+        min_salary: "-",
+        max_salary: "-",
         salary,
         urlGenerate,
         jobIdForUrl,
