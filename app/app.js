@@ -2,7 +2,7 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
-// const Parser = require("rss-parser");
+const Parser = require("rss-parser");
 const { parse } = require('rss-to-json');
 const axios = require("axios");
 
@@ -101,24 +101,28 @@ App.get(versionOne("getLinkedinJobs"), async (req, res, next) => {
 });
 
 App.get(versionOne("getJobs"), async (req, res, next) => {
-  //const parser = new Parser();
+  const parser = new Parser();
   // let feed = await parser.parseURL('https://www.reddit.com/.rss');
 
   const ofertTrabajo = req.query.trabajo;
-  // const rss = await parser.parseURL(
-  //   // `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
-  //   `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
-  // );
+  const rss = await parser.parseURL(
+    // `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Per%C3%BA`
+    `https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`
+  );
   console.log("BUSCANDO OFERTA: "+ofertTrabajo)
   try {
-    const rss = await parse(`https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`);
+    console.log(`https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`)
+    // const rss = await parse(`https://pe.indeed.com/rss?q=${ofertTrabajo}&l=Peru&sort=date`);
+    
+    // console.log(JSON.stringify(rss) )
     const [jobsIndeedArray, mGetonboardJobs] = await Promise.all([getIndeedJobs(rss), getGetOnBoardJobs(ofertTrabajo)]);
     jobs = jobsIndeedArray.concat(mGetonboardJobs);
     res.json({success:true,jobs : jobs});
   } catch (error) {
+    console.log("error BUSCANDO OFERTA: "+error)
     res.json({success:false,jobs : [
     {
-      title:"No datos",
+      title:"No datos IND",
       link:"No datos",
       image:"https://ctuid.com/img/not-found.png",
       pubDate:"No datos",
@@ -270,18 +274,21 @@ const getIndeedJobs = async (lista) => {
       linkUrl = indeedJob.link
       linkUrl = linkUrl.replace(/&amp;/g,"&");
 
-      const date = new Date().toLocaleDateString(indeedJob.published);
-      const date2 = timeAgo(indeedJob.published);
+      // const date = new Date().toLocaleDateString(indeedJob.pubDate);
+      const date = new Date(indeedJob.isoDate).toUTCString()
+
+      
+      const date2 = timeAgo(indeedJob.isoDate);
 
       let description = ''
-      description =indeedJob.description.split('&lt;br>')[0]
-      
+      description =indeedJob?.contentSnippet
+      //if (description=='') indeedJob?.contentSnippet
       let salary = ''
 
-      const indexSalaryMoneda= description.indexOf('S/.')
+      const indexSalaryMoneda= description?.indexOf('S/.')
 
-      salary= (indexSalaryMoneda != -1)?"S"+description.slice(description.indexOf('S/.') + 1): '-'
-
+      salary= (indexSalaryMoneda != -1)?"S"+description?.slice(description?.indexOf('S/.') + 1): '-'
+      salary = salary.split("De Indeed")[0]
       const myJob = {
         image: 'https://pe.indeed.com/images/indeed_rss_2_es.png',
         title: title,
@@ -306,6 +313,7 @@ const getIndeedJobs = async (lista) => {
 
     return listindeedServiceJobs;
   } catch (error) {
+    console.log("get indeed jobs error:")
     console.error(error);
     return [];
   }
@@ -502,9 +510,10 @@ const getGetOnBoardJobs = async (ofertTrabajo) => {
 
     return listgetonboardServiceJobs;
   } catch (error) {
+    console.log("getonboard jobs error")
     console.log(error);
     console.error(error);
-    return [];
+    //return [];
   }
 };
 
